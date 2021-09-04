@@ -23,10 +23,11 @@ in vec3 v_normal;
 in vec3 v_frag_pos;
 in vec2 v_uv;
 
+#define NR_POINT_LIGHTS 4
 uniform vec3        u_lighting_color;
 uniform vec3        u_view_pos;
 uniform Material    u_material;
-uniform Point_light u_point_light;
+uniform Point_light u_point_lights[NR_POINT_LIGHTS];
 uniform Dir_light   u_dir_light;
 
 vec3 calc_dir_light(Dir_light light, vec3 normal, vec3 view_dir)
@@ -88,7 +89,8 @@ void main()
     vec3 view_dir = normalize(u_view_pos - v_frag_pos);
     vec3 output_color = vec3(0.0);
     output_color += calc_dir_light(u_dir_light, norm, view_dir);
-    output_color += calc_point_light(u_point_light, norm, view_dir);
+    for (int i = 0; i < NR_POINT_LIGHTS; i++)
+        output_color += calc_point_light(u_point_lights[i], norm, view_dir);
 
     frag_color = vec4(output_color, 1.0);
 }

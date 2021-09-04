@@ -86,6 +86,25 @@ std::map<int, std::vector<float>> attenuation {
     {200, {1.0, 0.022, 0.0019}},
 };
 
+std::vector<glm::vec3> cube_pos {
+    glm::vec3( -3.0f, -1.0f,  0.0f),
+    glm::vec3(  2.0f,  0.0f,  0.0f),
+    glm::vec3( -2.0f,  3.5f,  3.0f),
+    glm::vec3(  2.5f,  2.5f, -2.0f),
+    glm::vec3(  0.0f,  0.0f, -2.0f),
+    glm::vec3( -3.0f,  3.6f, -3.0f),
+    glm::vec3(  2.0f, -3.0f,  1.0f),
+    glm::vec3(  0.0f, -2.0f,  0.0f),
+    glm::vec3( -1.0f, -2.0f, -2.0f),
+};
+
+std::vector<glm::vec3> pos_lightings {
+    glm::vec3(  0.0f,  0.0f,  0.0f),
+    glm::vec3(  2.8f, -1.0f,  0.0f),
+    glm::vec3(  0.0f,  2.0f, -3.0f),
+    glm::vec3( -2.0f,  0.0f,  2.0f),
+};
+
 glm::vec3 camera_pos    { glm::vec3(0.0f, 0.0f,  3.0f) };
 glm::vec3 camera_front  { glm::vec3(0.0f, 0.0f, -1.0f) };
 glm::vec3 camera_up     { glm::vec3(0.0f, 1.0f,  0.0f) };
@@ -196,10 +215,6 @@ int main(void)
         u_lighting_color.g = 0.3;
         u_lighting_color.b = 1.0;
 
-        glm::mat4 u_model_lighting { glm::mat4(1.0f) };
-        glm::vec3 pos_lighting { glm::vec3(0.0f, 0.0f, 0.0f) };
-        u_model_lighting = glm::translate(u_model_lighting, pos_lighting);
-        u_model_lighting = glm::scale(u_model_lighting, glm::vec3(0.2f));
 
         glm::mat4 u_view_lighting;
         u_view_lighting = camera.get_matrix();
@@ -208,12 +223,19 @@ int main(void)
             glm::perspective(glm::radians(camera.zoom), 1024.0f / 800.0f, 0.1f, 100.0f)
         };
 
-        shader_lighting.set_uniform("u_model", u_model_lighting);
         shader_lighting.set_uniform("u_view", u_view_lighting);
         shader_lighting.set_uniform("u_projection", u_projection);
         shader_lighting.set_uniform("u_lighting_color", u_lighting_color);
 
-        vao_light.draw();
+        for (size_t i = 0; i < pos_lightings.size(); i++) {
+            glm::mat4 u_model_lighting { glm::mat4(1.0f) };
+            u_model_lighting = glm::translate(u_model_lighting, pos_lightings[i]);
+            u_model_lighting = glm::scale(u_model_lighting, glm::vec3(0.2f));
+
+            shader_lighting.set_uniform("u_model", u_model_lighting);
+
+            vao_light.draw();
+        }
 
         shader_basic.use();
         vao_container.bind();
@@ -235,32 +257,46 @@ int main(void)
         shader_basic.set_uniform("u_material.diffuse", 0);
         shader_basic.set_uniform("u_material.specular", 1);
         shader_basic.set_uniform("u_material.shininess", u_shininess);
-        shader_basic.set_uniform("u_point_light.ambient", u_lighting_ambient);
-        shader_basic.set_uniform("u_point_light.diffuse", u_lighting_diffuse);
-        shader_basic.set_uniform("u_point_light.specular", u_lighting_specular);
-        shader_basic.set_uniform("u_point_light.position", pos_lighting);
-        shader_basic.set_uniform("u_point_light.constant", attenuation.find(50)->second[0]);
-        shader_basic.set_uniform("u_point_light.linear", attenuation.find(50)->second[1]);
-        shader_basic.set_uniform("u_point_light.quadratic", attenuation.find(50)->second[2]);
+        // Directional Light.
         shader_basic.set_uniform("u_dir_light.ambient", u_lighting_ambient);
         shader_basic.set_uniform("u_dir_light.diffuse", u_lighting_diffuse);
         shader_basic.set_uniform("u_dir_light.specular", u_lighting_specular);
         shader_basic.set_uniform("u_dir_light.direction", dir_lighting);
+        // Point Lights.
+        shader_basic.set_uniform("u_point_lights[0].ambient", u_lighting_ambient);
+        shader_basic.set_uniform("u_point_lights[0].diffuse", u_lighting_diffuse);
+        shader_basic.set_uniform("u_point_lights[0].specular", u_lighting_specular);
+        shader_basic.set_uniform("u_point_lights[0].position", pos_lightings[0]);
+        shader_basic.set_uniform("u_point_lights[0].constant", attenuation.find(50)->second[0]);
+        shader_basic.set_uniform("u_point_lights[0].linear", attenuation.find(50)->second[1]);
+        shader_basic.set_uniform("u_point_lights[0].quadratic", attenuation.find(50)->second[2]);
+
+        shader_basic.set_uniform("u_point_lights[1].ambient", u_lighting_ambient);
+        shader_basic.set_uniform("u_point_lights[1].diffuse", u_lighting_diffuse);
+        shader_basic.set_uniform("u_point_lights[1].specular", u_lighting_specular);
+        shader_basic.set_uniform("u_point_lights[1].position", pos_lightings[1]);
+        shader_basic.set_uniform("u_point_lights[1].constant", attenuation.find(50)->second[0]);
+        shader_basic.set_uniform("u_point_lights[1].linear", attenuation.find(50)->second[1]);
+        shader_basic.set_uniform("u_point_lights[1].quadratic", attenuation.find(50)->second[2]);
+
+        shader_basic.set_uniform("u_point_lights[2].ambient", u_lighting_ambient);
+        shader_basic.set_uniform("u_point_lights[2].diffuse", u_lighting_diffuse);
+        shader_basic.set_uniform("u_point_lights[2].specular", u_lighting_specular);
+        shader_basic.set_uniform("u_point_lights[2].position", pos_lightings[2]);
+        shader_basic.set_uniform("u_point_lights[2].constant", attenuation.find(50)->second[0]);
+        shader_basic.set_uniform("u_point_lights[2].linear", attenuation.find(50)->second[1]);
+        shader_basic.set_uniform("u_point_lights[2].quadratic", attenuation.find(50)->second[2]);
+
+        shader_basic.set_uniform("u_point_lights[3].ambient", u_lighting_ambient);
+        shader_basic.set_uniform("u_point_lights[3].diffuse", u_lighting_diffuse);
+        shader_basic.set_uniform("u_point_lights[3].specular", u_lighting_specular);
+        shader_basic.set_uniform("u_point_lights[3].position", pos_lightings[3]);
+        shader_basic.set_uniform("u_point_lights[3].constant", attenuation.find(50)->second[0]);
+        shader_basic.set_uniform("u_point_lights[3].linear", attenuation.find(50)->second[1]);
+        shader_basic.set_uniform("u_point_lights[3].quadratic", attenuation.find(50)->second[2]);
 
         texture1.bind();
         texture2.bind();
-
-        std::vector<glm::vec3> cube_pos {
-            glm::vec3( -3.0f, -1.0f,   0.0f),
-            glm::vec3(  2.0f,  0.0f,   0.0f),
-            glm::vec3( -2.0f,  3.5f,   3.0f),
-            glm::vec3(  2.5f,  2.5f,  -2.0f),
-            glm::vec3(  0.0f,  0.0f,  -2.0f),
-            glm::vec3( -3.0f,  3.6f,  -3.0f),
-            glm::vec3(  2.0f, -3.0f,   1.0f),
-            glm::vec3(  0.0f, -2.0f,   0.0f),
-            glm::vec3( -1.0f, -2.0f,  -2.0f),
-        };
 
         for (size_t i = 0; i < cube_pos.size(); i++) {
             glm::mat4 u_model { glm::mat4(1.0f) };
