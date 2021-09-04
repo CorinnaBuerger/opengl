@@ -1,6 +1,7 @@
 #include <array>
 #include <cmath>
 #include <concepts>
+#include <map>
 #include <vector>
 
 #include "box.hh"
@@ -73,6 +74,18 @@ Box box {
     Vertex { -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f },
 };
 
+std::map<int, std::vector<float>> attenuation {
+    {7,   {1.0, 0.7,   1.8   }},
+    {13,  {1.0, 0.35,  0.44  }},
+    {20,  {1.0, 0.22,  0.2   }},
+    {32,  {1.0, 0.14,  0.07  }},
+    {50,  {1.0, 0.09,  0.032 }},
+    {65,  {1.0, 0.07,  0.017 }},
+    {100, {1.0, 0.045, 0.0075}},
+    {160, {1.0, 0.027, 0.0028}},
+    {200, {1.0, 0.022, 0.0019}},
+};
+
 glm::vec3 camera_pos    { glm::vec3(0.0f, 0.0f,  3.0f) };
 glm::vec3 camera_front  { glm::vec3(0.0f, 0.0f, -1.0f) };
 glm::vec3 camera_up     { glm::vec3(0.0f, 1.0f,  0.0f) };
@@ -139,7 +152,7 @@ int main(void)
 
     // Texture
     Texture texture1 { "./textures/container2.jpg", 0 };
-    Texture texture2 { "./textures/shiba.jpg", 1 };
+    Texture texture2 { "./textures/shiba2.jpg", 1 };
 
     // _One_ element buffer object for both triangles.
     GLuint ebo_id;
@@ -226,6 +239,9 @@ int main(void)
         shader_basic.set_uniform("u_point_light.diffuse", u_lighting_diffuse);
         shader_basic.set_uniform("u_point_light.specular", u_lighting_specular);
         shader_basic.set_uniform("u_point_light.position", pos_lighting);
+        shader_basic.set_uniform("u_point_light.constant", attenuation.find(50)->second[0]);
+        shader_basic.set_uniform("u_point_light.linear", attenuation.find(50)->second[1]);
+        shader_basic.set_uniform("u_point_light.quadratic", attenuation.find(50)->second[2]);
         shader_basic.set_uniform("u_dir_light.ambient", u_lighting_ambient);
         shader_basic.set_uniform("u_dir_light.diffuse", u_lighting_diffuse);
         shader_basic.set_uniform("u_dir_light.specular", u_lighting_specular);

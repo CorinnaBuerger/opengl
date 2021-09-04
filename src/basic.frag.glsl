@@ -6,8 +6,9 @@ struct Material {
 };
 
 struct Point_light {
-    vec3 position;
-    vec3 ambient, diffuse, specular;
+    vec3  position;
+    vec3  ambient, diffuse, specular;
+    float constant, linear, quadratic;
 };
 
 struct Dir_light {
@@ -50,9 +51,9 @@ vec3 calc_dir_light(Dir_light light, vec3 normal, vec3 view_dir)
     return ambient + diffuse + specular;
 }
 
-vec3 calc_point_light(Point_light light, vec3 normal, vec3 view_dir, vec3 frag_pos)
+vec3 calc_point_light(Point_light light, vec3 normal, vec3 view_dir)
 {
-    vec3 lighting_dir = normalize(light.position - frag_pos);
+    vec3 lighting_dir = normalize(light.position - v_frag_pos);
 
     // Ambient lighting.
     vec3 ambient = light.ambient * vec3(texture(u_material.ambient, v_uv));
@@ -69,6 +70,15 @@ vec3 calc_point_light(Point_light light, vec3 normal, vec3 view_dir, vec3 frag_p
         light.specular * dot_product_spec * vec3(texture(u_material.specular, v_uv))
     );
 
+    // Attenuation.
+    float light_distance = length(light.position - v_frag_pos);
+    float attenuation = 1.0 / (light.constant +
+                               light.linear * light_distance +
+                               light.quadratic * light_distance);
+    ambient *= attenuation;
+    diffuse *= attenuation;
+    specular *= attenuation;
+
     return ambient + diffuse + specular;
 }
 
@@ -78,7 +88,7 @@ void main()
     vec3 view_dir = normalize(u_view_pos - v_frag_pos);
     vec3 output_color = vec3(0.0);
     output_color += calc_dir_light(u_dir_light, norm, view_dir);
-    output_color += calc_point_light(u_point_light, norm, view_dir, v_frag_pos);
+    output_color += calc_point_light(u_point_light, norm, view_dir);
 
     frag_color = vec4(output_color, 1.0);
 }
